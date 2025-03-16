@@ -6,3 +6,4 @@ numpy
 PyMuPDF
 nltk
 fitz
+sentence_transformers

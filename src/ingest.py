@@ -161,8 +161,8 @@ def main():
     create_hnsw_index()
 
     process_pdfs("data/")
-    print("\n---Done processing PDFs---\n")
-    query_redis("What is the capital of France?")
+    print("\n\n\n\n---Done processing PDFs---\n\n\n\n")
+    query_redis("Name three databases mentioned in the context")
 
 
 if __name__ == "__main__":

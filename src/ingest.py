@@ -2,13 +2,23 @@
 
 import ollama
 import redis
+#import chromadb
+#import faiss
 import numpy as np
 from redis.commands.search.query import Query
 import os
 import fitz
+import re
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+
+PORT=6379
 
 # Initialize Redis connection
-redis_client = redis.Redis(host="localhost", port=6380, db=0)
+redis_client = redis.Redis(host="localhost", port=PORT, db=0)
 
 VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
@@ -85,9 +95,17 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
     return chunks
 
 
+def preprocess_text(text):
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'[^\w\s]', '', text)
+    tokens = word_tokenize(text.lower())
+    filtered_tokens = [word for word in tokens if word not in stopwords.words('english')]
+    return ' '.join(filtered_tokens)
+
+
+
 # Process all PDF files in a given directory
 def process_pdfs(data_dir):
-
     for file_name in os.listdir(data_dir):
         if file_name.endswith(".pdf"):
             pdf_path = os.path.join(data_dir, file_name)
@@ -106,6 +124,18 @@ def process_pdfs(data_dir):
                         embedding=embedding,
                     )
             print(f" -----> Processed {file_name}")
+            
+    '''
+    def chroma_store(embeddings, documents):
+        client = chromadb.Client()
+        collection = client.create_collection(name="notes")
+        collection.add(documents=documents, embeddings=embeddings.tolist())
+
+    def faiss_store(embeddings):
+        dimension = embeddings.shape[1]
+        index = faiss.IndexFlatL2(dimension)
+        index.add(embeddings)
+    '''
 
 
 def query_redis(query_text: str):
@@ -130,7 +160,7 @@ def main():
     clear_redis_store()
     create_hnsw_index()
 
-    process_pdfs("../data/")
+    process_pdfs("data/")
     print("\n---Done processing PDFs---\n")
     query_redis("What is the capital of France?")
 

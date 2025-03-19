@@ -89,16 +89,16 @@ def generate_rag_response(query, context_results):
     print(f"context_str: {context_str}")
 
     # Construct prompt with context
-    prompt = f"""You are a helpful AI assistant. 
-    Use the following context to answer the query as accurately as possible. If the context is 
-    not relevant to the query, say 'I don't know'.
+    prompt = f"""You are a helpful AI assistant that answers programming questions. 
+    Use the following context to answer the query as accurately as possible. If given a multiple choice question,
+    choose one answer and explain your reasoning. If the context is not relevant to the query, say 'I don't know'.
 
-Context:
-{context_str}
+    Context:
+    {context_str}
 
-Query: {query}
+    Query: {query}
 
-Answer:"""
+    Answer:"""
 
     # Generate response using Ollama
     response = ollama.chat(

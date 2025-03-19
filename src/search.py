@@ -89,9 +89,16 @@ def generate_rag_response(query, context_results):
     print(f"context_str: {context_str}")
 
     # Construct prompt with context
-    prompt = f"""You are a helpful AI assistant that answers programming questions. 
-    Use the following context to answer the query as accurately as possible. If given a multiple choice question,
-    choose one answer and explain your reasoning. If the context is not relevant to the query, say 'I don't know'.
+    prompt = f"""You are an expert programming assistant with access to reference material.
+    When answering, follow these steps:
+
+    1. Use only the provided context to answer the question.
+    2. If answering a multiple-choice question, select the best answer and justify it with keywords or definitions from the context.
+    3. If the answer requires explanation, provide it clearly and concisely, focusing on correctness over creativity.
+    4. If the context does not contain enough information to answer confidently, respond with 'I don't know'.
+    5. Be precise, factual, and avoid assumptions.
+    
+    If the context is not relevant to the query, say 'I don't know'.
 
     Context:
     {context_str}

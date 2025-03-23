@@ -156,14 +156,16 @@ def query_redis(query_text: str):
         print(f"{doc.id} \n ----> {doc.vector_distance}\n")
 
 
-def main():
+def main(data):
+    #Changed so that could be run from command line
+    #should still work from VSCode
     clear_redis_store()
     create_hnsw_index()
 
-    process_pdfs("data/")
+    process_pdfs(data)
     print("\n\n\n\n---Done processing PDFs---\n\n\n\n")
-    query_redis("Name three databases mentioned in the context")
+    #query_redis("Name three databases mentioned in the context")
 
 
 if __name__ == "__main__":
-    main()
+    main("data/")

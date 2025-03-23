@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, TextField
-
+import re
 
 # Initialize models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -75,7 +75,8 @@ def search_embeddings(query, top_k=3):
         return []
 
 
-def generate_rag_response(query, context_results):
+def generate_rag_response(query, context_results, model):
+    #now takes desired model as input
 
     # Prepare context string
     context_str = "\n".join(
@@ -109,7 +110,8 @@ def generate_rag_response(query, context_results):
 
     # Generate response using Ollama
     response = ollama.chat(
-        model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+        #model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+        model=model, messages=[{"role": "user", "content": prompt}]
     )
 
     return response["message"]["content"]
@@ -121,19 +123,46 @@ def interactive_search():
     print("Type 'exit' to quit")
 
     while True:
+        
         query = input("\nEnter your search query: ")
+        
 
         if query.lower() == "exit":
             break
 
+
+        #select model
+        while True:
+
+            model = input("\nEnter the value for your desired model(0 : llama3.2:1b, 1: llama3.2, 2: mistral:latest): ")
+            if model == str(0):
+                model = "llama3.2:1b"
+                break
+            elif model == str(1):
+                model = 'llama3.2'
+                break
+            elif model == str(2):
+                model = 'mistral:latest'
+                break
+            else:
+                print('please select a possible model')
+
+        
+
         # Search for relevant embeddings
         context_results = search_embeddings(query)
 
-        # Generate RAG response
-        response = generate_rag_response(query, context_results)
 
+        
+        # Generate RAG response
+        response = generate_rag_response(query, context_results, model)
+        safe_model = re.sub(r'[\/:*?"<>|&]', '_', model)
         print("\n--- Response ---")
         print(response)
+        with open(f"{safe_model}.txt", "a") as file:
+            file.write(query, '\n')
+            file.write(response)
+
 
 
 # def store_embedding(file, page, chunk, embedding):

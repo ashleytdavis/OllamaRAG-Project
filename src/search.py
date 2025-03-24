@@ -7,7 +7,6 @@ from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, TextField
 import re
 from collections import deque
-
 # --- Tree Structures Implementation ---
 
 # Binary Search Tree Implementation
@@ -46,6 +45,8 @@ class AVLNode:
         self.right = None
         self.height = 1
 
+# Global list to log rebalance events for AVL trees
+rebalance_log = []
 
 def get_height(node):
     if not node:
@@ -92,21 +93,24 @@ def insert_avl(node, key):
 
     # Left Left
     if balance > 1 and key < node.left.key:
+        rebalance_log.append((key, node.key, "Right rotation (Left Left case)"))
         return right_rotate(node)
     # Right Right
     if balance < -1 and key > node.right.key:
+        rebalance_log.append((key, node.key, "Left rotation (Right Right case)"))
         return left_rotate(node)
     # Left Right
     if balance > 1 and key > node.left.key:
+        rebalance_log.append((key, node.key, "Left-Right rotation"))
         node.left = left_rotate(node.left)
         return right_rotate(node)
     # Right Left
     if balance < -1 and key < node.right.key:
+        rebalance_log.append((key, node.key, "Right-Left rotation"))
         node.right = right_rotate(node.right)
         return left_rotate(node)
 
     return node
-
 
 def build_avl_tree(numbers):
     root = None
@@ -132,6 +136,29 @@ def tree_to_string(node):
             if current.right:
                 q.append(current.right)
         result += " ".join(level_nodes) + "\n"
+    return result
+
+# New function: print tree structure showing connections
+def tree_structure_string(node, indent=""):
+    if node is None:
+        return ""
+    result = indent + str(node.key)
+    if node.left or node.right:
+        result += " -> ("
+        if node.left:
+            result += "L:" + str(node.left.key)
+        else:
+            result += "L:None"
+        result += ", "
+        if node.right:
+            result += "R:" + str(node.right.key)
+        else:
+            result += "R:None"
+        result += ")\n"
+        result += tree_structure_string(node.left, indent + "   ")
+        result += tree_structure_string(node.right, indent + "   ")
+    else:
+        result += "\n"
     return result
 
 # --- End of Tree Structures Implementation ---
@@ -255,7 +282,9 @@ def generate_rag_response(query, context_results, model):
 
 def interactive_search():
     """Interactive search interface."""
-    global conversation_memory
+    global conversation_memory, rebalance_log
+
+
     if 'conversation_memory' not in globals():
         conversation_memory = []
     print("🔍 RAG Search Interface")
@@ -266,16 +295,14 @@ def interactive_search():
         # Check if the query is asking to build an AVL tree or a binary search tree
         query = input("\nEnter your search query (or type 'reset' to clear memory; 'exit' to exit interface): ")
 
-
         if query.lower() == 'exit':
             return
 
         if query.lower() == 'reset':
             conversation_memory = []
-            print('Conersation Memory Cleared')
+            print('Conversation Memory Cleared')
             continue
 
-        # Check if the query is asking to build an AVL tree or a binary search tree
         if ('avl tree' in query.lower() or 'binary search tree' in query.lower() or 'bst' in query.lower()) and 'build' in query.lower():
             # Look for the first occurrence of '[' and ']'
             start_idx = query.find('[')
@@ -290,25 +317,26 @@ def interactive_search():
                     print(f"Error parsing numbers from query: {e}")
                     numbers = []
                 if numbers:
-                    # Confirm with the user
                     confirmation = input(f"You provided numbers: {numbers}. Do you want to build the tree? (yes/no): ")
                     if confirmation.strip().lower().startswith('y'):
                         if 'avl tree' in query.lower():
+                            rebalance_log = []  # clear previous events
                             tree_root = build_avl_tree(numbers)
-                            tree_str = tree_to_string(tree_root)
-                            print("\n--- AVL Tree ---")
+                            tree_str = tree_structure_string(tree_root)
+                            print("\n--- AVL Tree Structure ---")
                             print(tree_str)
+                            print("\nRebalance Events:")
+                            for event in rebalance_log:
+                                print(f"Inserted {event[0]} caused imbalance at node {event[1]} with {event[2]}")
                         else:
                             tree_root = build_bst(numbers)
-                            tree_str = tree_to_string(tree_root)
-                            print("\n--- Binary Search Tree ---")
+                            tree_str = tree_structure_string(tree_root)
+                            print("\n--- Binary Search Tree Structure ---")
                             print(tree_str)
                         continue
                     else:
-                        # Proceed with regular search if user declines
                         pass
                 else:
-                    # No valid numbers found in the query
                     response = input("No valid numbers found in your query. Do you want to build a tree? (yes/no): ")
                     if response.strip().lower().startswith('y'):
                         numbers_input = input("Please provide a list of numbers separated by commas: ")
@@ -319,24 +347,25 @@ def interactive_search():
                             numbers = []
                         if numbers:
                             if 'avl tree' in query.lower():
+                                rebalance_log = []
                                 tree_root = build_avl_tree(numbers)
-                                tree_str = tree_to_string(tree_root)
-                                print("\n--- AVL Tree ---")
+                                tree_str = tree_structure_string(tree_root)
+                                print("\n--- AVL Tree Structure ---")
                                 print(tree_str)
+                                print("\nRebalance Events:")
+                                for event in rebalance_log:
+                                    print(f"Inserted {event[0]} caused imbalance at node {event[1]} with {event[2]}")
                             else:
                                 tree_root = build_bst(numbers)
-                                tree_str = tree_to_string(tree_root)
-                                print("\n--- Binary Search Tree ---")
+                                tree_str = tree_structure_string(tree_root)
+                                print("\n--- Binary Search Tree Structure ---")
                                 print(tree_str)
                             continue
                         else:
-                            # No numbers provided, proceed with regular search
                             pass
                     else:
-                        # User declined to build a tree, proceed with regular search
                         pass
             else:
-                # No brackets found in the query
                 response = input("No numbers provided in query. Do you want to build a tree? (yes/no): ")
                 if response.strip().lower().startswith('y'):
                     numbers_input = input("Please provide a list of numbers separated by commas: ")
@@ -347,14 +376,18 @@ def interactive_search():
                         numbers = []
                     if numbers:
                         if 'avl tree' in query.lower():
+                            rebalance_log = []
                             tree_root = build_avl_tree(numbers)
-                            tree_str = tree_to_string(tree_root)
-                            print("\n--- AVL Tree ---")
+                            tree_str = tree_structure_string(tree_root)
+                            print("\n--- AVL Tree Structure ---")
                             print(tree_str)
+                            print("\nRebalance Events:")
+                            for event in rebalance_log:
+                                print(f"Inserted {event[0]} caused imbalance at node {event[1]} with {event[2]}")
                         else:
                             tree_root = build_bst(numbers)
-                            tree_str = tree_to_string(tree_root)
-                            print("\n--- Binary Search Tree ---")
+                            tree_str = tree_structure_string(tree_root)
+                            print("\n--- Binary Search Tree Structure ---")
                             print(tree_str)
                         continue
                     else:

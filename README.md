@@ -14,6 +14,13 @@ Run the following command to create and run a redis container on docker:
 ```
 docker run -d --name redis-stack -p 6379:6379 redis/redis-stack:latest
 ```
+- Our implementation tests multiple embedding models offerred by ollama - they
+can be installed by running the following:
+```
+ollama run llama3.2
+ollama run mistral
+ollama run deepseek-r1
+```
 
 ## Source Code
 - `src/ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 

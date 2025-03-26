@@ -1,5 +1,4 @@
 from search import interactive_search as interactive_search_general
-from trees import interactive_search as interactive_search_trees
 from ingest import main as data_prep
 import argparse
 
@@ -17,12 +16,7 @@ def main():
     data_prep(args.path)
 
     #running the search function of choice
-    if args.model == 'general':
-        interactive_search_general()
-    elif args.model == 'trees':
-        interactive_search_trees()
-    else:
-        print("That was not a possible model")
+    interactive_search_general()
 
 
 if __name__ == "__main__":

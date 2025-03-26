@@ -16,11 +16,6 @@ INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
-# def cosine_similarity(vec1, vec2):
-#     """Calculate cosine similarity between two vectors."""
-#     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-
-
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 
     response = ollama.embeddings(model=model, prompt=text)

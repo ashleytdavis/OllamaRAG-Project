@@ -19,4 +19,3 @@ docker run -d --name redis-stack -p 6379:6379 redis/redis-stack:latest
 - `src/ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
 stored in Redis-stack
 - `src/search.py` - simple question answering using 
-- `src/trees.py` - a simple q/a command-line based system that is designated to answering tree-based questions

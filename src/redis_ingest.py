@@ -1,9 +1,5 @@
-## DS 4300 Example - from docs
-
 import ollama
 import redis
-#import chromadb
-#import faiss
 import numpy as np
 from redis.commands.search.query import Query
 import os

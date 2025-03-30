@@ -8,3 +8,4 @@ nltk
 fitz
 sentence_transformers
 re
+chromadb

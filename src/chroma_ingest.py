@@ -22,9 +22,9 @@ class ChromaDBIngest:
         '''
         Intializes a connection to chromadb on port 8000
         '''
-        textProcessor = TextProcess()
+        self.textProcessor = TextProcess()
         # Initializing a chroma connection
-        client = chromadb.HttpClient(
+        self.client = chromadb.HttpClient(
             settings=Settings(allow_reset=True),
             host="localhost", 
             port=8000

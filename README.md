@@ -1,4 +1,22 @@
-# Ollama RAG Ingest and Search
+<div align="center">
+    <img src="https://r72.cooltext.com/rendered/cooltext479371054064664.png" alt="Header" />
+</div>
+
+### Ashley Davis, Misha Ankudovych, Kevin Martone, and Karen Phung
+
+Table of Contents:
+- <a href="#About">About</a>
+- <a href="#Set-Up-Instructions">Set Up Instructions</a>
+- <a href="#Source-Code-Breakdown">Source Code Breakdown</a>
+- <a href="#Command-Line-Usage">Command Line Usage</a>
+    - <a href="#Indexing-Files">Indexing Files</a>
+    - <a href="#Searching-Terms">Searching Terms</a>
+    - <a href="#Need-Help?">Need Help?</a>
+- <a href="#Findings">Results</a>
+- <a href="#Project-Authors">Project Authors</a>
+
+
+## About
 
 ## Set Up Instructions
 
@@ -28,6 +46,20 @@ ollama run deepseek-r1
 ```
 
 ## Source Code
-- `src/ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
+- `src/redis_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
 stored in Redis-stack
-- `src/search.py` - simple question answering using 
+- `src/chroma_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
+stored in ChromaDB
+- `src/text_process.py` - abstracted pdf and text processing functionality
+
+## Results
+
+
+## Project Authors
+Ashley Davis | davis.ash@northeastern.edu | [Github](https://github.com/ashleytdavis)
+
+Misha Ankudovych | ankudovych.m@northeastern.edu | [Github](https://github.com/ankudovychm)
+
+Kevin Martone | (insert email) | (Insert github)
+
+Karen Phung | (insert email) | (insert github)

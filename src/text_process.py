@@ -6,6 +6,7 @@ import nltk
 import os
 import ollama
 
+
 class TextProcess:
     '''
     A class for processing text data, including extracting text from PDFs,
@@ -15,8 +16,9 @@ class TextProcess:
     abstracted to reduce code duplication.
     '''
     def __init__(self):
-        pass
-    
+        nltk.download('punkt')
+        nltk.download('stopwords')
+
     
     def extract_text_from_pdf(self, pdf_path):
         '''

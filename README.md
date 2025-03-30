@@ -45,6 +45,13 @@ ollama run llama3.2
 ollama run mistral
 ollama run deepseek-r1
 ```
+- Our implementation also tests multiple embedding models offered by ollama - they
+can be installed by running the following:
+```
+ollama pull llama3.2:1b
+ollama pull llama3.2
+ollama pull mistral:latest
+```
 
 ## Source Code Breakdown
 - `src/redis_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 

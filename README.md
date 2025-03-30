@@ -17,6 +17,7 @@ Table of Contents:
 
 
 ## About
+This project demonstrates the integration of advanced text processing, embedding generation, and vector database storage using ChromaDB and Redis. It processes PDF files by extracting text, splitting it into manageable chunks, and generating embeddings using various LLM models provided by Ollama. The embeddings are then stored in either Redis or ChromaDB for efficient querying and retrieval. This implementation showcases the power of combining modern vector databases with natural language processing techniques to enable fast and accurate information retrieval.
 
 ## Set Up Instructions
 
@@ -45,14 +46,14 @@ ollama run mistral
 ollama run deepseek-r1
 ```
 
-## Source Code
+## Source Code Breakdown
 - `src/redis_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
 stored in Redis-stack
 - `src/chroma_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
 stored in ChromaDB
 - `src/text_process.py` - abstracted pdf and text processing functionality
 
-## Results
+## Findings
 
 
 ## Project Authors

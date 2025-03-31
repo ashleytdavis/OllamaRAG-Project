@@ -10,11 +10,11 @@ from nltk.tokenize import word_tokenize
 import nltk
 nltk.download('punkt')
 nltk.download('stopwords')
-
-PORT=6379
+#Phase out as each model uses different ports
+#PORT=6379
 
 # Initialize Redis connection
-redis_client = redis.Redis(host="localhost", port=PORT, db=0)
+redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
 VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"

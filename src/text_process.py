@@ -6,6 +6,8 @@ import nltk
 import os
 import ollama
 
+nltk.download('punkt_tab')
+
 
 class TextProcess:
     '''
@@ -15,11 +17,12 @@ class TextProcess:
     The below functions were provided to us in the starter code, and are
     abstracted to reduce code duplication.
     '''
-    def __init__(self):
+    def __init__(self, preprocess: bool = False):
+        self.preprocess = preprocess
         nltk.download('punkt')
         nltk.download('stopwords')
 
-    
+
     def extract_text_from_pdf(self, pdf_path):
         '''
         Extract text from a PDF file.
@@ -72,8 +75,8 @@ class TextProcess:
         tokens = word_tokenize(text.lower())
         filtered_tokens = [word for word in tokens if word not in stopwords.words('english')]
         return ' '.join(filtered_tokens)
-                
-                
+
+
     def get_embedding(self, text: str, model: str = "nomic-embed-text") -> list:
         '''
         Generate an embedding for the given text using the specified model.
@@ -85,6 +88,8 @@ class TextProcess:
         Returns:
             list: The embedding vector as a list of floats.
         '''
+        if self.preprocess:
+            text = self.preprocess_text(text)
         response = ollama.embeddings(model=model, prompt=text)
         return response["embedding"]
     

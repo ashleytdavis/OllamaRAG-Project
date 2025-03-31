@@ -48,9 +48,9 @@ ollama run deepseek-r1
 - Our implementation also tests multiple embedding models offered by ollama - they
 can be installed by running the following:
 ```
-ollama pull llama3.2:1b
-ollama pull llama3.2
-ollama pull mistral:latest
+ollama pull all-minilm
+ollama pull nomic-embed-text
+ollama pull mxbai-embed-large
 ```
 
 ## Source Code Breakdown
@@ -58,6 +58,8 @@ ollama pull mistral:latest
 stored in Redis-stack
 - `src/chroma_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
 stored in ChromaDB
+- `src/qdrant_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
+stored in Qdrant
 - `src/text_process.py` - abstracted pdf and text processing functionality
 
 ## Findings
@@ -68,6 +70,6 @@ Ashley Davis | davis.ash@northeastern.edu | [Github](https://github.com/ashleytd
 
 Misha Ankudovych | ankudovych.m@northeastern.edu | [Github](https://github.com/ankudovychm)
 
-Kevin Martone | (insert email) | (Insert github)
+Kevin Martone | martone.k@northeastern.edu | (Insert github)
 
 Karen Phung | (insert email) | (insert github)

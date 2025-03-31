@@ -1,5 +1,5 @@
 from search import interactive_search as interactive_search_general
-from ingest import main as data_prep
+from redis_ingest import main as data_prep
 import argparse
 
 

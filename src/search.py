@@ -5,7 +5,6 @@ from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, TextField
-import re
 
 # Initialize models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -23,8 +22,21 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 
 
 def search_embeddings(query, top_k=3):
+    while True:
+        check = input("\nEnter the value for your desired embedding-model(0 : all-minilm, 1: nomic-embed-text, 2: mxbai-embed-large): ")
+        if check == str(0):
+            model = "all-MiniLM-L6-v2"
+            break
+        elif check == str(1):
+            model = 'nomic-embed-text'
+            break
+        elif check == str(2):
+            model = 'mxbai-embed-large'
+            break
+        else:
+            print('please select a possible model')
 
-    query_embedding = get_embedding(query)
+    query_embedding = get_embedding(query, model)
 
     # Convert embedding to bytes for Redis search
     query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
@@ -129,15 +141,15 @@ def interactive_search():
         #select model
         while True:
 
-            model = input("\nEnter the value for your desired model(0 : llama3.2:1b, 1: llama3.2, 2: mistral:latest): ")
+            model = input("\nEnter the value for your desired model(0 : llama3.2, 1: mistral:latest, 2: deepseek-r1): ")
             if model == str(0):
-                model = "llama3.2:1b"
-                break
-            elif model == str(1):
                 model = 'llama3.2'
                 break
-            elif model == str(2):
+            elif model == str(1):
                 model = 'mistral:latest'
+                break
+            elif model == str(2):
+                model = 'deepseek-r1'
                 break
             else:
                 print('please select a possible model')
@@ -151,35 +163,10 @@ def interactive_search():
         
         # Generate RAG response
         response = generate_rag_response(query, context_results, model)
-        safe_model = re.sub(r'[\/:*?"<>|&]', '_', model)
         print("\n--- Response ---")
         print(response)
-        with open(f"{safe_model}.txt", "a") as file:
-            file.write(query, '\n')
-            file.write(response)
 
 
-
-# def store_embedding(file, page, chunk, embedding):
-#     """
-#     Store an embedding in Redis using a hash with vector field.
-
-#     Args:
-#         file (str): Source file name
-#         page (str): Page number
-#         chunk (str): Chunk index
-#         embedding (list): Embedding vector
-#     """
-#     key = f"{file}_page_{page}_chunk_{chunk}"
-#     redis_client.hset(
-#         key,
-#         mapping={
-#             "embedding": np.array(embedding, dtype=np.float32).tobytes(),
-#             "file": file,
-#             "page": page,
-#             "chunk": chunk,
-#         },
-#     )
 
 
 if __name__ == "__main__":

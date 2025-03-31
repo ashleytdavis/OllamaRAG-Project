@@ -1,9 +1,7 @@
 import pandas as pd
-import itertools
 import time
 import csv
-import os
-
+from allpairspy import AllPairs
 from src.UnifiedInjest import *
 from src.search  import *
 
@@ -18,84 +16,101 @@ configs = {"chunk_sizes": [200, 500, 1000],
            "LLM_type": ["llama3.2", "mistral", "deepseek-r1"]
            }
 
-# 50 wquestions and answers the AI will be tested on
+# 25 questions (only based on information found in the provided PDFs) and their corresponding answers
 questions = [
-    "What is the worst-case time complexity of linear search? A) O(1) B) O(log n) C) O(n) D) O(n log n",
-    "In a database context, what is a ‘record’? A) A single field B) A row in a table C) A column header D) A primary key",
-    "Which data structure is typically faster for random access? A) Arrays B) Linked Lists C) Hash Tables D) Trees",
-    "Which ACID property ensures that a transaction takes a database from one consistent state to another? A) Atomicity B) Consistency C) Isolation D) Durability",
-    "What does ‘dirty read’ refer to in transaction isolation? A) Reading uncommitted changes from another transaction B) Reading stale data C) Reading data from a backup D) Reading data from cache",
-    "In vertical scaling, what is the approach used to improve performance? A) Adding more nodes B) Upgrading to a more powerful system C) Sharding the data D) Using distributed computing",
-    "In leader-based replication, which node handles all writes from clients? A) Follower B) Peer C) Leader D) Replica",
-    "What is a key challenge when using asynchronous replication? A) High latency B) Inconsistency window C) Low throughput D) Increased disk usage",
-    "Which replication method uses a byte-level log of every change to the database? A) Statement-based B) Logical log C) Write-ahead log D) Trigger-based",
-    "In a B+ tree, what operation is performed when a leaf node is full and a new key is inserted? A) Merge B) Rotation C) Splitting D) Rebalancing",
-    "In a B+ tree of order 4, what is the maximum number of keys an internal node can contain? A) 2 B) 3 C) 4 D) 5",
-    "During B+ tree insertion, why is the smallest key from the new leaf copied to the parent? A) To balance the tree B) To update the search path C) To maintain sorted order D) To mark the split",
-    "Which best describes a key-value store in NoSQL databases? A) Supports complex joins B) Stores documents C) Maps each key to a single value D) Is a relational database",
-    "What does BASE stand for in NoSQL systems? A) Basic, Available, Soft-state, Eventual consistency B) Basically Available, Soft state, Eventual consistency C) Balanced, Asynchronous, Scalable, Event-driven D) Binary, Accessible, Secure, Extensible",
-    "According to the CAP theorem, a distributed database cannot simultaneously guarantee which three properties? A) Consistency, Availability, Scalability B) Consistency, Availability, Partition Tolerance C) Performance, Consistency, Partition Tolerance D) Availability, Durability, Partition Tolerance",
-    "Which Python library is commonly used to interface with Redis? A) pymongo B) redis-py C) neo4j-driver D) sqlalchemy",
-    "Which Redis command increments a numeric value stored at a key? A) INCR B) SET C) APPEND D) MGET",
-    "What is the primary data structure used by Redis? A) Document B) Key-Value pairs C) Graph D) Relational table",
-    "What is the benefit of using Redis pipelines? A) Increase security B) Reduce network overhead by batching commands C) Ensure data persistence D) Simplify data types",
-    "In a document database, data is typically stored in which format? A) XML B) CSV C) JSON D) SQL",
-    "What is BSON in MongoDB? A) A query language B) A binary representation of JSON C) A document structure D) A type of index",
-    "Which feature is supported by MongoDB? A) Requires a predefined schema B) Supports ACID transactions only C) Supports replica sets for automatic failover D) Uses SQL for querying",
-    "In PyMongo, which method is used to insert a single document into a collection? A) insert_many() B) insert_one() C) update() D) find()",
-    "Which function from bson.json_util is used to serialize MongoDB query results? A) dumps() B) loads() C) json_encode() D) to_json()",
-    "After connecting with PyMongo, how do you access a specific database? A) client.get_database(‘dbName’) B) client[‘dbName’] C) client.connect(‘dbName’) D) client.database(‘dbName’)",
-    "In a graph database, what are the individual entities that store data called? A) Edges B) Nodes C) Vertices D) Both B and C",
-    "What is the process of finding the shortest path between two nodes in a graph called? A) Graph partitioning B) Graph traversal C) Pathfinding D) Centrality",
-    "In the property graph model, which component can have key-value pairs? A) Only nodes B) Only edges C) Both nodes and edges D) Neither",
-    "What is the query language used by Neo4j? A) SQL B) Cypher C) Gremlin D) SPARQL",
-    "Which is a key characteristic of Neo4j? A) Schema-less document storage B) Graph database with ACID compliance C) Key-value store D) Columnar storage",
-    "What is the purpose of the APOC plugin in Neo4j? A) Manage transactions B) Extend Cypher with additional procedures C) Provide security D) Replicate data",
-    "What is the benefit of a high branching factor in a B-tree? A) Increased tree height B) Fewer disk accesses C) More frequent splits D) Reduced space efficiency",
-    "What property do all leaf nodes in a B-tree share? A) They are at varying levels B) They are all at the same level C) They contain internal pointers D) They are unsorted",
-    "Where are the actual data records stored in a B+ tree? A) In the internal nodes B) In the root node C) In the leaf nodes D) Evenly distributed",
-    "When a B-tree node is full during insertion, what operation is typically performed? A) Merge B) Split C) Rotate D) Rebalance",
-    "According to ‘A Note on Distributed Computing’, what is a major challenge in distributed systems? A) Memory leaks B) Partial failure C) Infinite loops D) Single-threaded execution",
-    "Why is the latency difference significant in distributed computing? A) Remote calls are much faster B) Remote calls require more disk I/O C) Remote calls are orders of magnitude slower than local calls D) Remote calls are executed in parallel",
-    "What flawed assumption does the note on distributed computing criticize in unified object models? A) All objects can be implemented in C++ B) Location does not affect object interactions C) Network protocols are always reliable D) Memory is unlimited",
-    "Why is locality important in B-trees? A) It minimizes disk I/O B) It improves network latency C) It increases memory usage D) It reduces caching needs",
-    "What invariant is maintained by a B-tree regarding paths from the root to a leaf? A) All paths have equal length B) All paths contain the same number of keys C) All nodes have the same branching factor D) All leaves are internal nodes",
-    "What is the result of an inorder traversal of a binary search tree? A) Non-decreasing order of keys B) Non-increasing order C) Random order D) Reverse sorted order",
-    "In the worst-case scenario, what is the time complexity of searching in a degenerate binary search tree? A) O(1) B) O(log n) C) O(n) D) O(n log n",
-    "Which BST traversal visits nodes in the order: left subtree, current node, right subtree? A) Preorder B) Inorder C) Postorder D) Level order",
-    "What defines the AVL property in a binary search tree? A) The tree is complete B) The heights of left and right subtrees differ by at most 1 C) All leaves are at the same level D) The tree is perfectly balanced",
-    "What is the purpose of an LL rotation in AVL trees? A) To rotate a right-heavy subtree B) To rotate a left-heavy subtree C) To swap child nodes D) To merge two subtrees",
-    "What is the worst-case time complexity for rebalancing an AVL tree after insertion? A) O(1) B) O(log n) C) O(n) D) O(n log n",
-    "If an AVL tree node’s left subtree has height 3 and its right subtree has height 1, does it satisfy the AVL property? A) Yes B) No C) Only if balanced later D) It depends on the node count",
-    "What is a key disadvantage of a degenerate binary search tree? A) Low memory usage B) O(n) search time C) Easy balancing D) Uniform height",
-    "Which database supports a document-oriented data model with flexible schema? A) MySQL B) PostgreSQL C) MongoDB D) Oracle",
-    "In a leaderless replication model, what strategy is employed? A) All writes go to a single leader B) Writes are "
-    "coordinated through consensus C) No single leader exists and any node can process writes D) Writes are first logged "
-    "then merged "
+    "True/False: In a B+ tree, splitting a full leaf node and promoting the smallest key from the new node guarantees that all nodes remain at least half full, optimizing disk I/O by ensuring maximum data locality.",
+    "True/False: The write-ahead log (WAL) replication method mandates that both the leader and all followers use an identical storage engine, which complicates system upgrades.",
+    "True/False: In leaderless replication, write operations are centrally coordinated by a designated leader, ensuring strong consistency across replicas.",
+    "True/False: Binary search trees (BSTs) inherently guarantee logarithmic search time regardless of the order in which keys are inserted.",
+    "True/False: In an AVL tree, enforcing the balance condition that the height difference between left and right subtrees is at most 1 ensures that the tree's height remains O(log n) under worst-case insertion orders.",
+    "True/False: In a B-tree, when a node becomes full during insertion, the standard recovery procedure is to merge the node with one of its siblings to maintain tree balance.",
+    "True/False: According to the CAP theorem as described in the PDFs, during a network partition a distributed system must choose between consistency and availability.",
+    "True/False: Document databases store data in JSON format in a way that inherently enforces a rigid schema, preventing any differences between documents in the same collection.",
+    "True/False: Redis supports a variety of data types—including lists, sets, sorted sets, and hashes—which enhances its utility as an in-memory database.",
+    "True/False: MongoDB's BSON format is optimized for human readability of stored documents.",
+    "True/False: In the property graph model employed by Neo4j, both nodes and relationships can have multiple key-value properties to capture rich semantic details.",
+    "True/False: Neo4j's query language, Cypher, is fundamentally based on pattern matching and significantly differs in syntax and approach from traditional SQL.",
+    "True/False: Distributed computing systems face unique challenges such as partial failure and indeterminacy, necessitating specialized design considerations that are absent in local computing.",
+    "True/False: The design of NFS, as discussed in the corpus, completely abstracts network failures so that its operation is indistinguishable from that of a local file system.",
+    "True/False: Analysis of randomly built BSTs reveals that, under random key insertions, the average tree height is O(log n), ensuring efficient searches on average.",
+    "True/False: In a binary search tree, an inorder traversal always produces the keys in non-decreasing (sorted) order.",
+    "True/False: Vertical scaling involves upgrading to a more powerful machine—a process that is generally simpler than horizontal scaling, despite its inherent financial and physical limitations.",
+    "True/False: Horizontal scaling in distributed systems typically relies on a shared-disk architecture to maintain data consistency across nodes.",
+    "True/False: The replication strategies described in the corpus include statement-based replication, WAL, logical (row-based) logging, and trigger-based replication, each offering distinct trade-offs in consistency and error handling.",
+    "True/False: In synchronous replication, the leader waits for acknowledgment from all followers before committing a write, which increases write latency.",
+    "True/False: Asynchronous replication employs an eventual consistency model that allows high availability at the cost of temporary inconsistencies in read operations.",
+    "True/False: Merging the computational models of local and distributed objects is straightforward since they share identical mechanisms for memory access and failure handling.",
+    "True/False: The concept of 'local-remote' objects suggests that objects in different address spaces on the same machine can share many characteristics with local objects, thereby mitigating the impact of partial failure.",
+    "True/False: The analysis using Jensen's inequality in the corpus demonstrates that the expected height of a randomly built BST grows linearly with the number of nodes.",
+    "True/False: The architectural design of distributed databases aims to minimize disk block accesses, which is a key motivation for employing B-trees over traditional binary search trees."
 ]
 
 answers = [
-    "c", "b", "a", "b", "a", "b", "c", "b", "c", "c",
-    "b", "b", "c", "b", "b", "b", "a", "b", "b", "c",
-    "b", "b", "c", "b", "b", "d", "c", "c", "b", "b",
-    "b", "b", "b", "b", "c", "b", "c", "b", "a", "a",
-    "a", "c", "b", "b", "b", "b", "b", "c", "c", "c"
+    "true",   # Q1: B+ tree splitting guarantees half-full nodes.
+    "true",   # Q2: WAL requires identical storage engines.
+    "false",  # Q3: Leaderless replication does not coordinate via a designated leader.
+    "false",  # Q4: BSTs can degenerate if keys are inserted in order.
+    "true",   # Q5: AVL tree balance condition ensures logarithmic height.
+    "false",  # Q6: Standard procedure is splitting, not merging, a full B-tree node.
+    "true",   # Q7: CAP theorem forces a trade-off during network partitions.
+    "false",  # Q8: Document databases allow flexible schemas.
+    "true",   # Q9: Redis supports multiple advanced data types.
+    "false",  # Q10: BSON is optimized for efficient storage, not human readability.
+    "true",   # Q11: Neo4j's property graph model supports properties on both nodes and edges.
+    "true",   # Q12: Cypher is pattern-based and differs from SQL.
+    "true",   # Q13: Distributed systems face unique challenges (partial failure, indeterminacy).
+    "false",  # Q14: NFS does not completely hide network failures.
+    "true",   # Q15: Average height of random BST is O(log n).
+    "true",   # Q16: Inorder traversal yields sorted order (non-decreasing).
+    "true",   # Q17: Vertical scaling is simpler but limited.
+    "false",  # Q18: Horizontal scaling usually uses a shared-nothing architecture.
+    "true",   # Q19: Replication strategies include multiple methods with trade-offs.
+    "false",  # Q20: In synchronous replication, the leader does wait for acknowledgments.
+    "true",   # Q21: Asynchronous replication uses eventual consistency.
+    "false",  # Q22: Merging local and distributed object models is complex, not straightforward.
+    "true",   # Q23: 'Local-remote' objects can share many characteristics with local objects.
+    "false",  # Q24: Jensen's inequality shows expected BST height is O(log n), not linear.
+    "true"    # Q25: Minimizing disk accesses motivates the use of B-trees.
 ]
+
 
 def CreateCombos(configs):
     """
-    Creates a df that has every unique conbination of the config
+    Creates a DataFrame that contains every unique configuration
+    from two different pairwise samples generated using the AllPairs algorithm.
+    One sample is generated with the natural order of parameters,
+    and the other is generated with the reverse order.
     """
-    # Get keys and values
+
+
+    # Get keys and corresponding value lists
     keys = list(configs.keys())
     values = list(configs.values())
 
-    # Generate all combinations
-    combinations = list(itertools.product(*values))
+    # Generator 1: Using natural order of parameters
+    pairwise_sample1 = list(AllPairs(values))
 
-    # Create the DataFrame
-    df = pd.DataFrame(combinations, columns=keys)
+    # Generator 2: Using reversed order of parameters, then reverse each combination to match original order
+    pairwise_sample2_reversed = list(AllPairs(list(reversed(values))))
+    pairwise_sample2 = [list(reversed(combo)) for combo in pairwise_sample2_reversed]
 
+    # Combine both samples
+    combined_samples = pairwise_sample1 + pairwise_sample2
+
+    # Remove duplicate configurations by converting each to a tuple and using a set for uniqueness
+    unique_configs = []
+    seen = set()
+    for config in combined_samples:
+        config_tuple = tuple(config)
+        if config_tuple not in seen:
+            seen.add(config_tuple)
+            unique_configs.append(config)
+
+    # Create a DataFrame from the unique configurations
+    df = pd.DataFrame(unique_configs, columns=keys)
+    print("Pairwise Pairs")
+    print(df)
+    print()
     return df
 
 
@@ -120,10 +135,13 @@ def OneRun(config_data):
 
     ingest_time = round(ingest_end_time - ingest_start_time, 2)
 
-
+    print
     print("**Done Indexing**")
     print("")
+    print(config_data)
     print("")
+
+
 
     search_start_time = time.time()
     correct = 0
@@ -133,13 +151,29 @@ def OneRun(config_data):
 
         # If the answer is correct, add 1
         response = GenerateResponse(embedding, DB_type, LLM_type, q)
-        response_letter = response[0].lower()
 
-        if response_letter == answers[idx]:
+        if 'true' in response.lower():
+            ans = 'true'
+        elif 'false' in response.lower():
+            ans = 'false'
+        else:
+            ans = 'ERROR/Incorrect'
+
+        print()
+        print("Question:",questions[idx])
+        print("Ans:", ans)
+        print("Correct:", answers[idx])
+        print()
+
+
+
+
+        if ans == answers[idx]:
             correct += 1
 
     # Calculate the score the AI received on the test
-    percentScore = round(correct/50,4)
+    percentScore = round(correct/len(questions),4)
+    print("**", percentScore, "**")
 
     search_end_time = time.time()
     search_time = round(search_end_time - search_start_time, 2)
@@ -185,6 +219,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-

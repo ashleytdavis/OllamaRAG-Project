@@ -142,16 +142,10 @@ class UnifiedSearch:
             ]
         )
         prompt = f"""You are an expert programming assistant with access to reference material.
-When answering, follow these steps:
-
+        
 1. Use only the provided context to answer the question.
-2. If answering a multiple-choice question, select the best answer by providing the letter of the answer and Nothing else. Do not include the text with the answer. Only include the letter of the corret choice
-Again. It is of upmost importance: For multiple choice questions, return ONLY the correct answer letter. Nothing else. Do not include the ")" after the ltter or any of the answer text beyond the letter. 
-3. If the answer requires explanation, provide it clearly and concisely, focusing on correctness over creativity.
-4. If the context does not contain enough information to answer confidently, respond with 'I don't know'.
-5. Be precise, factual, and avoid assumptions.
-
-If the context is not relevant to the query, say 'I don't know'.
+2. Answer only with ‘true’ or ‘false’. Do not explain. Do not say anything else.
+3. If the context is not relevant to the query, say 'I don't know'.
 
 Context:
 {context_str}
@@ -201,8 +195,8 @@ if __name__ == "__main__":
 
 
     embedding_model = "all-minilm"
-    db_type = "qdrant"  # redis or "chroma" or "qdrant"
-    rag_model = "deepseek-r1"
+    db_type = "chroma"  # redis or "chroma" or "qdrant"
+    rag_model = "mistral"
 
 
    # InteractiveSearch(embedding_model, db_type, rag_model)

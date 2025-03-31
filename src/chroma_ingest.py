@@ -135,7 +135,7 @@ def main(data):
     client = chroma.client
 
     chroma.clear_chroma_collection(client)
-    chroma.process_pdfs(data, client)
+    chroma.process_pdfs(data, client, 100, 50)
     print("\n\n\n\n---Done processing PDFs---\n\n\n\n")
     
     collection = client.get_collection(COLLECTION_NAME)

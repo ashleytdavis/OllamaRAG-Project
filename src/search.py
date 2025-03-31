@@ -141,15 +141,15 @@ def interactive_search():
         #select model
         while True:
 
-            model = input("\nEnter the value for your desired model(0 : llama3.2:1b, 1: llama3.2, 2: mistral:latest): ")
+            model = input("\nEnter the value for your desired model(0 : llama3.2, 1: mistral:latest, 2: deepseek-r1): ")
             if model == str(0):
-                model = "llama3.2:1b"
-                break
-            elif model == str(1):
                 model = 'llama3.2'
                 break
-            elif model == str(2):
+            elif model == str(1):
                 model = 'mistral:latest'
+                break
+            elif model == str(2):
+                model = 'deepseek-r1'
                 break
             else:
                 print('please select a possible model')

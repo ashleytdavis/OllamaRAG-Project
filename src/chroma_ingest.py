@@ -27,7 +27,7 @@ class ChromaDBIngest:
         # Initializing a chroma connection
         self.client = chromadb.HttpClient(
             settings=Settings(allow_reset=True),
-            host="localhost", 
+            host="localhost",
             port=8000
         )
     
@@ -66,7 +66,7 @@ class ChromaDBIngest:
         return collection
 
 
-    def process_pdfs(self, data_dir, client):
+    def process_pdfs(self, data_dir, client, chunk_size, overlap):
         '''
         Process all PDF files in a given directory. Extracts text, splits it into chunks,
         generates embeddings, and stores them.
@@ -80,7 +80,7 @@ class ChromaDBIngest:
                 pdf_path = os.path.join(data_dir, file_name)
                 text_by_page = self.textProcessor.extract_text_from_pdf(pdf_path)
                 for page_num, text in text_by_page:
-                    chunks = self.textProcessor.split_text_into_chunks(text)
+                    chunks = self.textProcessor.split_text_into_chunks(text, chunk_size, overlap)
                     for chunk_index, chunk in enumerate(chunks):
                         embedding = self.textProcessor.get_embedding(chunk)
                         self.store_embedding(

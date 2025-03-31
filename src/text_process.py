@@ -37,7 +37,7 @@ class TextProcess:
         return text_by_page
 
 
-    def split_text_into_chunks(self, text, chunk_size=300, overlap=50):
+    def split_text_into_chunks(self, text, chunk_size, overlap):
         '''
         Split text into chunks of approximately `chunk_size` words with an overlap.
 

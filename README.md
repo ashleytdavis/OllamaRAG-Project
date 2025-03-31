@@ -33,10 +33,15 @@ Run the following command to create and run a redis container on docker:
 ```
 docker run -d --name redis-stack -p 6379:6379 redis/redis-stack:latest
 ```
-- ChromaDB instance running on port 8000
+- ChromaDB instance running on port 8000.
 Run the following command to create and run a chromadb container on docker:
 ```
 docker run -d --rm --name chromadb -p 8000:8000 -v ./chroma:/chroma/chroma -e IS_PERSISTENT=TRUE -e ANONYMIZED_TELEMETRY=TRUE chromadb/chroma:0.6.3
+```
+- Qdrant instance running on port 6333.
+Run the following command to create and run a qdrant container on docker:
+```
+docker run -d --name qdrant_container -p 6333:6333 -p 6334:6334 qdrant/qdrant
 ```
 - Our implementation tests multiple LLM models offerred by ollama - they
 can be installed by running the following:
@@ -70,6 +75,6 @@ Ashley Davis | davis.ash@northeastern.edu | [Github](https://github.com/ashleytd
 
 Misha Ankudovych | ankudovych.m@northeastern.edu | [Github](https://github.com/ankudovychm)
 
-Kevin Martone | martone.k@northeastern.edu | (Insert github)
+Kevin Martone | martone.k@northeastern.edu | [Github](https://github.com/kevinmartone)
 
-Karen Phung | (insert email) | (insert github)
+Karen Phung | phung.ka@northeastern.edu | [Github](https://github.com/karenphung01)

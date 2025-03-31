@@ -3,6 +3,7 @@ import chromadb
 
 from text_process import TextProcess
 from chromadb.config import Settings
+
 '''
     More information about everything I built here can be found here:
     https://www.datacamp.com/tutorial/chromadb-tutorial-step-by-step-guide

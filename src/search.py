@@ -5,7 +5,6 @@ from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, TextField
-import re
 
 # Initialize models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -23,8 +22,21 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 
 
 def search_embeddings(query, top_k=3):
+    while True:
+        check = input("\nEnter the value for your desired embedding-model(0 : all-minilm, 1: nomic-embed-text, 2: mxbai-embed-large): ")
+        if check == str(0):
+            model = "all-MiniLM-L6-v2"
+            break
+        elif check == str(1):
+            model = 'nomic-embed-text'
+            break
+        elif check == str(2):
+            model = 'mxbai-embed-large'
+            break
+        else:
+            print('please select a possible model')
 
-    query_embedding = get_embedding(query)
+    query_embedding = get_embedding(query, model)
 
     # Convert embedding to bytes for Redis search
     query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
@@ -151,12 +163,8 @@ def interactive_search():
         
         # Generate RAG response
         response = generate_rag_response(query, context_results, model)
-        safe_model = re.sub(r'[\/:*?"<>|&]', '_', model)
         print("\n--- Response ---")
         print(response)
-        with open(f"{safe_model}.txt", "a") as file:
-            file.write(query, '\n')
-            file.write(response)
 
 
 

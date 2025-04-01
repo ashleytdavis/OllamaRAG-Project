@@ -1,173 +1,204 @@
 import redis
-import json
 import numpy as np
-from sentence_transformers import SentenceTransformer
 import ollama
+import chromadb
+import re
+from chromadb.config import Settings
+from qdrant_client import QdrantClient
 from redis.commands.search.query import Query
-from redis.commands.search.field import VectorField, TextField
-
-# Initialize models
-# embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-redis_client = redis.StrictRedis(host="localhost", port=6379, decode_responses=True)
-
-VECTOR_DIM = 768
-INDEX_NAME = "embedding_index"
-DOC_PREFIX = "doc:"
-DISTANCE_METRIC = "COSINE"
-
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
 
 
-def search_embeddings(query, top_k=3):
-    while True:
-        check = input("\nEnter the value for your desired embedding-model(0 : all-minilm, 1: nomic-embed-text, 2: mxbai-embed-large): ")
-        if check == str(0):
-            model = "all-MiniLM-L6-v2"
-            break
-        elif check == str(1):
-            model = 'nomic-embed-text'
-            break
-        elif check == str(2):
-            model = 'mxbai-embed-large'
-            break
-        else:
-            print('please select a possible model')
+class UnifiedSearch:
+    def __init__(self, db_type: str, embedding_model: str):
+        """
+        Initializes the UnifiedSearch with a given database type and embedding model.
 
-    query_embedding = get_embedding(query, model)
+        Args:
+            db_type (str): The database type ("redis", "chroma", or "qdrant").
+            embedding_model (str): The embedding model to use (e.g., "nomic-embed-text").
+        """
+        self.db_type = db_type.lower()
+        self.embedding_model = embedding_model
 
-    # Convert embedding to bytes for Redis search
-    query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
+        if self.db_type == "redis":
+            # Initialize Redis client
+            self.redis_client = redis.StrictRedis(host="localhost", port=6379, decode_responses=True)
+            self.index_name = "embedding_index"
+            self.DOC_PREFIX = "doc:"
 
-    try:
-        # Construct the vector similarity search query
-        # Use a more standard RediSearch vector search syntax
-        # q = Query("*").sort_by("embedding", query_vector)
-
-        q = (
-            Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
-            .sort_by("vector_distance")
-            .return_fields("id", "file", "page", "chunk", "vector_distance")
-            .dialect(2)
-        )
-
-        # Perform the search
-        results = redis_client.ft(INDEX_NAME).search(
-            q, query_params={"vec": query_vector}
-        )
-
-        # Transform results into the expected format
-        top_results = [
-            {
-                "file": result.file,
-                "page": result.page,
-                "chunk": result.chunk,
-                "similarity": result.vector_distance,
-            }
-            for result in results.docs
-        ][:top_k]
-
-        # Print results for debugging
-        for result in top_results:
-            print(
-                f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}"
+        elif self.db_type == "chroma":
+            # Initialize Chroma client and collection
+            self.chroma_client = chromadb.HttpClient(
+                settings=Settings(allow_reset=True),
+                host="localhost",
+                port=8000
             )
+            self.collection_name = "pdf_embeddings"
+            self.collection = self.chroma_client.get_collection(self.collection_name)
 
-        return top_results
+        elif self.db_type == "qdrant":
+            # Initialize Qdrant client
+            self.qdrant_client = QdrantClient(host="localhost", port=6333)
+            self.collection_name = "pdf_embeddings"
+        else:
+            raise ValueError("Unsupported database type provided. Use 'redis', 'chroma', or 'qdrant'.")
 
-    except Exception as e:
-        print(f"Search error: {e}")
-        return []
+    def get_embedding(self, text: str) -> list:
+        """
+        Gets an embedding for the given text using the specified embedding model.
 
+        Args:
+            text (str): The text to embed.
 
-def generate_rag_response(query, context_results, model):
-    #now takes desired model as input
+        Returns:
+            list: The embedding vector.
+        """
+        response = ollama.embeddings(model=self.embedding_model, prompt=text)
+        return response["embedding"]
 
-    # Prepare context string
-    context_str = "\n".join(
-        [
-            f"From {result.get('file', 'Unknown file')} (page {result.get('page', 'Unknown page')}, chunk {result.get('chunk', 'Unknown chunk')}) "
-            f"with similarity {float(result.get('similarity', 0)):.2f}"
-            for result in context_results
-        ]
-    )
+    def search(self, query: str, top_k: int = 3):
+        embedding = self.get_embedding(query)
 
-    print(f"context_str: {context_str}")
+        if self.db_type == "redis":
+            # Convert the embedding to bytes for Redis
+            query_vector = np.array(embedding, dtype=np.float32).tobytes()
+            q = (
+                Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
+                .sort_by("vector_distance")
+                .return_fields("id", "file", "page", "chunk", "vector_distance")
+                .dialect(2)
+            )
+            results = self.redis_client.ft(self.index_name).search(q, query_params={"vec": query_vector})
+            top_results = [
+                {
+                    "file": result.file,
+                    "page": result.page,
+                    "chunk": result.chunk,
+                    "similarity": result.vector_distance,
+                } for result in results.docs
+            ][:top_k]
+            return top_results
 
-    # Construct prompt with context
-    prompt = f"""You are an expert programming assistant with access to reference material.
-    When answering, follow these steps:
+        elif self.db_type == "chroma":
+            # Query Chroma with the embedding and original query text.
+            results = self.collection.query(
+                query_embeddings=[embedding],
+                query_texts=[query],
+                n_results=top_k,
+            )
+            top_results = []
+            # Iterate over each list of documents returned (one per query)
+            for doc_list in results.get("documents", []):
+                for doc in doc_list:
+                    parts = doc.split("_page_")
+                    if len(parts) == 2:
+                        file = parts[0]
+                        remainder = parts[1]
+                        parts2 = remainder.split("_chunk_")
+                        if len(parts2) == 2:
+                            page, chunk = parts2
+                            top_results.append({
+                                "file": file,
+                                "page": page,
+                                "chunk": chunk,
+                                "similarity": None,
+                            })
+            return top_results
 
-    1. Use only the provided context to answer the question.
-    2. If answering a multiple-choice question, select the best answer and justify it with keywords or definitions from the context.
-    3. If the answer requires explanation, provide it clearly and concisely, focusing on correctness over creativity.
-    4. If the context does not contain enough information to answer confidently, respond with 'I don't know'.
-    5. Be precise, factual, and avoid assumptions.
-    
-    If the context is not relevant to the query, say 'I don't know'.
+        elif self.db_type == "qdrant":
+            # Query Qdrant using the vector search API
+            results = self.qdrant_client.search(
+                collection_name=self.collection_name,
+                query_vector=embedding,
+                limit=top_k,
+            )
+            top_results = []
+            for res in results:
+                top_results.append({
+                    "file": res.payload.get("file", "unknown"),
+                    "page": res.payload.get("page", "unknown"),
+                    "chunk": res.payload.get("chunk", "unknown"),
+                    "similarity": res.score,
+                })
+            return top_results
 
-    Context:
-    {context_str}
+    def generate_rag_response(self, query: str, context_results, model: str):
+        """
+        Generates a RAG (Retrieval-Augmented Generation) response using Ollama.
 
-    Query: {query}
+        Args:
+            query (str): The original query.
+            context_results (list): The context from search results.
+            model (str): The model to use for generating the response.
 
-    Answer:"""
+        Returns:
+            str: The generated response.
+        """
+        context_str = "\n".join(
+            [
+                f"From {result.get('file', 'Unknown file')} (page {result.get('page', 'Unknown page')}, chunk {result.get('chunk', 'Unknown chunk')}) "
+                f"with similarity {float(result.get('similarity') or 0):.2f}"
+                for result in context_results
+            ]
+        )
+        prompt = f"""You are an expert programming assistant with access to reference material.
+        
+1. Use only the provided context to answer the question.
+2. Answer only with ‘true’ or ‘false’. Do not explain. Do not say anything else.
+3. If the context is not relevant to the query, say 'I don't know'.
 
-    # Generate response using Ollama
-    response = ollama.chat(
-        #model="mistral:latest", messages=[{"role": "user", "content": prompt}]
-        model=model, messages=[{"role": "user", "content": prompt}]
-    )
+Context:
+{context_str}
 
-    return response["message"]["content"]
+Query: {query}
 
+Answer:"""
+        response = ollama.chat(model=model, messages=[{"role": "user", "content": prompt}])
+        final_response = response["message"]["content"]
+        if "deepseek" in model.lower():
+            # Remove any <think>...</think> sections
+            final_response = re.sub(r"<think>.*?</think>", "", final_response, flags=re.DOTALL)
+            parts = final_response.split("**Answer:**")
+            if len(parts) > 1:
+                final_response = parts[1].strip()
+            else:
+                final_response = final_response.strip()
+        return final_response
 
-def interactive_search():
-    """Interactive search interface."""
-    print("🔍 RAG Search Interface")
-    print("Type 'exit' to quit")
+def GenerateResponse(embedding_model,db_type,rag_model, query):
+    search_engine = UnifiedSearch(db_type=db_type, embedding_model=embedding_model)
+
+    context_results = search_engine.search(query, top_k=3)
+
+    response = search_engine.generate_rag_response(query, context_results, rag_model)
+
+    return response
+
+def InteractiveSearch(embedding_model,db_type,rag_model):
 
     while True:
-        
-        query = input("\nEnter your search query: ")
-        
+        search_engine = UnifiedSearch(db_type=db_type, embedding_model=embedding_model)
+        query = input("Enter your search query: ")
 
-        if query.lower() == "exit":
-            break
+        if query.lower() == 'exit':
+            return
 
+        # Perform search
+        context_results = search_engine.search(query, top_k=3)
 
-        #select model
-        while True:
-
-            model = input("\nEnter the value for your desired model(0 : llama3.2, 1: mistral:latest, 2: deepseek-r1): ")
-            if model == str(0):
-                model = 'llama3.2'
-                break
-            elif model == str(1):
-                model = 'mistral:latest'
-                break
-            elif model == str(2):
-                model = 'deepseek-r1'
-                break
-            else:
-                print('please select a possible model')
-
-        
-
-        # Search for relevant embeddings
-        context_results = search_embeddings(query)
-
-
-        
-        # Generate RAG response
-        response = generate_rag_response(query, context_results, model)
-        print("\n--- Response ---")
+        response = search_engine.generate_rag_response(query, context_results, rag_model)
+        print("\n--- RAG Response ---")
         print(response)
 
-
-
-
+# Example usage:
 if __name__ == "__main__":
-    interactive_search()
+
+
+    embedding_model = "all-minilm"
+    db_type = "chroma"  # redis or "chroma" or "qdrant"
+    rag_model = "mistral"
+
+
+   # InteractiveSearch(embedding_model, db_type, rag_model)
+    print(GenerateResponse(embedding_model,db_type,rag_model, "Which of the following statements best describes the key property of an AVL tree? A) An AVL tree is a binary search tree that allows unlimited differences in the heights of its left and right subtrees. B) An AVL tree is a self-balancing binary search tree that maintains the property that the heights of the left and right subtrees of any node differ by no more than 1. C) An AVL tree is a type of binary search tree that only requires balance at the root node. D) An AVL tree is a binary tree that does not use rotations to achieve balance."))
+    #print(GenerateResponse(embedding_model,db_type,rag_model, "Who is mishas best friend? A) John B) Joe C) Hannah D) Mia"))

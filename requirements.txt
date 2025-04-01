@@ -9,3 +9,4 @@ fitz
 sentence_transformers
 re
 chromadb
+qdrant_client

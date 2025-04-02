@@ -11,7 +11,7 @@ Table of Contents:
 - <a href="#Command-Line-Usage">Command Line Usage</a>
     - <a href="#Indexing-Files">Indexing Files</a>
     - <a href="#Searching-Terms">Searching Terms</a>
-    - <a href="#Need-Help?">Need Help?</a>
+    - <a href="#Need-Help">Need Help?</a>
 - <a href="#Findings">Results</a>
 - <a href="#Project-Authors">Project Authors</a>
 
@@ -58,6 +58,9 @@ ollama pull nomic-embed-text
 ollama pull mxbai-embed-large
 ```
 
+## Command Line Usage
+(insert user instructions here)
+
 ## Source Code Breakdown
 - `src/redis_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
 stored in Redis-stack
@@ -68,7 +71,7 @@ stored in Qdrant
 - `src/text_process.py` - abstracted pdf and text processing functionality
 
 ## Findings
-
+A detailed report about our findings can be found <a href="https://docs.google.com/presentation/d/18PCLwp3W9CTwPKSxhj5DruVK9qEPUlvKcswCLIGUPe0/edit?usp=sharing">here</a>
 
 ## Project Authors
 Ashley Davis | davis.ash@northeastern.edu | [Github](https://github.com/ashleytdavis)

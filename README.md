@@ -62,13 +62,11 @@ ollama pull mxbai-embed-large
 (insert user instructions here)
 
 ## Source Code Breakdown
-- `src/redis_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
-stored in Redis-stack
-- `src/chroma_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
+- `src/UnifiedIngest.py` - This file contains the UnifiedIngest class, which is responsible for ingesting PDF files into different vector databases (Chroma, Qdrant, Redis). It handles text extraction, chunking, embedding generation using Ollama models, and storage in the selected database.
+- `src/model.py` - Thisfile houses the command line integration with our project.
 stored in ChromaDB
-- `src/qdrant_ingest.py` - imports and processes PDF files in `./data` folder. Embeddings and associated information 
-stored in Qdrant
-- `src/text_process.py` - abstracted pdf and text processing functionality
+- `src/text_process.py` - This file contains the TextProcess class, which abstracts text processing functionalities.
+- `src/search.py` - This file provides a unified interface for searching across the different vector databases we inquired on for our project (Redis, Chroma, Qdrant).
 
 ## Findings
 A detailed report about our findings can be found <a href="https://docs.google.com/presentation/d/18PCLwp3W9CTwPKSxhj5DruVK9qEPUlvKcswCLIGUPe0/edit?usp=sharing">here</a>

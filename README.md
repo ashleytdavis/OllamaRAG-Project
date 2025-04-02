@@ -60,6 +60,12 @@ ollama pull mxbai-embed-large
 
 ## Command Line Usage
 (insert user instructions here)
+### Indexing-Files
+
+### Searching-Terms
+
+### Need-Help
+
 
 ## Source Code Breakdown
 - `src/UnifiedIngest.py` - This file contains the UnifiedIngest class, which is responsible for ingesting PDF files into different vector databases (Chroma, Qdrant, Redis). It handles text extraction, chunking, embedding generation using Ollama models, and storage in the selected database.

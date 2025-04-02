@@ -69,7 +69,8 @@ Our interactive search can be run directly from the command by using:
 python path/to/file/model.py path/to/data/directory
 ```
 
-After running this line user will get the chance to input their choice of embedding, RAG model, vector database, and also the chunk and overlap sizes
+After running this line user will get the chance to input their choice of embedding, RAG model, vector database, and also the chunk and overlap sizes.
+
 Following the directions is important as values like chunk and overlap must be integers.  Also, chunk should be greater than overlap as overalp represents the area shared between two adjacent chunks.
 
 
@@ -78,8 +79,10 @@ This will be done automatically after all inputs are put in
 
 ### Searching-Terms
 Same as above, only input you as the user are required to enter is your desired Query.
-You can exit out of the search by inputing 'exit' as your query
-NOTE: after exiting you must re-initiate the process and will have to re-index all files
+
+You can exit out of the search by inputing 'exit' as your query.
+
+NOTE: after exiting you must re-initiate the process and will have to re-index all files.
 
 ### Need-Help
 Refer to <a href="#Findings">Results</a> for further breakdown of what each variable is and what changing them might mean!

@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="https://r72.cooltext.com/rendered/cooltext479371054064664.png" alt="Header" />
+    <img src="https://images.cooltext.com/5727475.png" alt="Header" />
 </div>
 
 ### Ashley Davis, Misha Ankudovych, Kevin Martone, and Karen Phung

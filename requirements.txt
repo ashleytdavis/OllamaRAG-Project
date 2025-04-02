@@ -1,7 +1,6 @@
 ollama
 redis
 chromadb
-faiss-cpu
 numpy
 PyMuPDF
 nltk

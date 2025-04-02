@@ -59,10 +59,27 @@ ollama pull mxbai-embed-large
 ```
 
 ## Command Line Usage
-(insert user instructions here)
+Ensure you have activated the correct conda env:
+```
+conda activate env_with_requirments.txt_installed
+```
+
+Our interactive search can be run directly from the command by using:
+```
+python path/to/file/model.py path/to/data/directory
+```
+
+After running this line user will get the chance to input their choice of embedding, RAG model, vector database, and also the chunk and overlap sizes
+Following the directions is important as values like chunk and overlap must be integers.  Also, chunk should be greater than overlap as overalp represents the area shared between two adjacent chunks.
+
+
 ### Indexing-Files
+This will be done automatically after all inputs are put in
 
 ### Searching-Terms
+Same as above, only input you as the user are required to enter is your desired Query.
+You can exit out of the search by inputing 'exit' as your query
+NOTE: after exiting you must re-initiate the process and will have to re-index all files
 
 ### Need-Help
 

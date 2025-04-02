@@ -3,12 +3,11 @@ import uuid
 import numpy as np
 import redis
 import chromadb
-import re
 from chromadb.config import Settings
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from redis.commands.search.query import Query
-from src.text_process import TextProcess
+from text_process import TextProcess
 
 COLLECTION_NAME = "pdf_embeddings"
 

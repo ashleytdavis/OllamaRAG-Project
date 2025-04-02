@@ -141,11 +141,12 @@ class UnifiedSearch:
                 for result in context_results
             ]
         )
+        # necessary addition to the prompt below when using testing.py in order to get correct accuracy
+        #2. Answer only with ‘true’ or ‘false’. Do not explain. Do not say anything else.
         prompt = f"""You are an expert programming assistant with access to reference material.
         
 1. Use only the provided context to answer the question.
-2. Answer only with ‘true’ or ‘false’. Do not explain. Do not say anything else.
-3. If the context is not relevant to the query, say 'I don't know'.
+2. If the context is not relevant to the query, say 'I don't know'.
 
 Context:
 {context_str}

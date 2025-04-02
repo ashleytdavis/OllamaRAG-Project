@@ -82,11 +82,11 @@ You can exit out of the search by inputing 'exit' as your query
 NOTE: after exiting you must re-initiate the process and will have to re-index all files
 
 ### Need-Help
-
+Refer to <a href="#Findings">Results</a> for further breakdown of what each variable is and what changing them might mean!
 
 ## Source Code Breakdown
 - `src/UnifiedIngest.py` - This file contains the UnifiedIngest class, which is responsible for ingesting PDF files into different vector databases (Chroma, Qdrant, Redis). It handles text extraction, chunking, embedding generation using Ollama models, and storage in the selected database.
-- `src/model.py` - Thisfile houses the command line integration with our project.
+- `src/model.py` - This file houses the command line integration with our project.
 stored in ChromaDB
 - `src/text_process.py` - This file contains the TextProcess class, which abstracts text processing functionalities.
 - `src/search.py` - This file provides a unified interface for searching across the different vector databases we inquired on for our project (Redis, Chroma, Qdrant).

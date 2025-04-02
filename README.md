@@ -61,7 +61,7 @@ ollama pull mxbai-embed-large
 ## Command Line Usage
 Ensure you have activated the correct conda env:
 ```
-conda activate env_with_requirments.txt_installed
+conda activate env_with_requirements.txt_installed
 ```
 
 Our interactive search can be run directly from the command by using:
